@@ -20,7 +20,7 @@ tailwind.config = {
 
 const SUPABASE_URL = 'https://nkkaqrbolzsvuecxwxql.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_CkSko1s38RVWDD5-ZTtiwQ_Wt5XIQL3';
-const WA_BOT_BASE_URL = 'https://pantaudos-bot.onrender.com'; // UDAH DIUBAH KE RENDER
+const WA_BOT_BASE_URL = 'https://bot.pantaudos.app';
 const TARGET_WA_GROUP_ID = '120363412150102602@g.us';
 const QUORUM_THRESHOLD = 18; // 50% + 1 dari 34 Mahasiswa
 
@@ -1150,7 +1150,7 @@ window.pantaudos = function () {
 
         copyPollingLink(req) {
             const c = this.getCourse(req.schedule_id || req.scheduleId);
-            const url = `https://pantaudos.unesa.ac.id/poll/2025c-${req.id}`;
+            const url = `${window.location.origin}/?poll=2025c-${req.id}`;
             const txt = `[VOTING JADWAL KULIAH]\nMata Kuliah: ${c.course}\nMohon tentukan jadwal pengganti Anda pada: ${url}`;
             this.triggerWaNotification('Grup WA Kelas S1 SI 2025 C', txt);
         },
