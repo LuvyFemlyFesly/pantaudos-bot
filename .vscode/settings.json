@@ -1,0 +1,7 @@
+{
+    "liveServer.settings.ignoreFiles": [
+        ".wwebjs_auth/**",
+        ".wwebjs_cache/**",
+        "node_modules/**"
+    ]
+}

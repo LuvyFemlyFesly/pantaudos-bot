@@ -1,0 +1,1039 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PantauDos - Sistem Jadwal & Negosiasi Kelas 2025C</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-[#F5F7FA] text-slate-800 antialiased h-screen overflow-hidden flex" x-data="pantaudos()">
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div class="fixed bottom-5 right-5 z-[80] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+        <template x-for="toast in waToasts" :key="toast.id">
+            <div class="pointer-events-auto bg-[#0F172A] text-white p-4 rounded-xl shadow-2xl border border-slate-700/50 flex items-start gap-3 anim-slide-up">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 shadow-sm border border-emerald-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                </div>
+                <div class="flex-1 text-xs">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold tracking-wide uppercase text-[10px] text-emerald-400">Notifikasi</span>
+                        <button type="button" @click="dismissToast(toast.id)" class="text-white/40 hover:text-white transition-transform">✕</button>
+                    </div>
+                    <p class="font-semibold text-slate-200" x-text="toast.target"></p>
+                    <p class="text-slate-400 leading-relaxed whitespace-pre-line text-[11px]" x-text="toast.message"></p>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div x-show="role === null" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0 z-50 flex h-screen w-full bg-white overflow-y-auto">
+        <div class="hidden lg:flex flex-col justify-between w-1/2 bg-brand-navy p-16 text-white relative overflow-hidden">
+            <div class="absolute inset-0 overflow-hidden z-0">
+                <div class="absolute w-96 h-96 bg-brand-royal/20 rounded-full blur-3xl -top-20 -left-20 anim-pulse-glow"></div>
+                <div class="absolute w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl bottom-10 right-10 anim-pulse-glow" style="animation-delay: 1.5s;"></div>
+            </div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-10">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg p-1.5 overflow-hidden">
+                        <img src="logo unesa coy.png" alt="Logo UNESA" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold tracking-tight">PantauDos UNESA</h1>
+                        <p class="text-[10px] text-slate-400">S1 Sistem Informasi 2025 C</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative z-10 flex flex-col items-center justify-center my-auto">
+                <div class="w-80 h-80 relative anim-scale flex items-center justify-center">
+                    <svg class="w-72 h-72 drop-shadow-2xl" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="200" cy="200" r="160" fill="#2563EB" fill-opacity="0.1" />
+                        <circle cx="200" cy="200" r="130" fill="#10B981" fill-opacity="0.05" />
+                        <g class="anim-float">
+                            <rect x="50" y="240" width="60" height="50" rx="8" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+                            <rect x="50" y="240" width="60" height="15" rx="2" fill="#2563EB"/>
+                            <circle cx="65" cy="247" r="2" fill="#FFFFFF"/>
+                            <circle cx="75" cy="247" r="2" fill="#FFFFFF"/>
+                            <rect x="60" y="265" width="8" height="6" rx="1" fill="#475569"/>
+                            <rect x="73" y="265" width="8" height="6" rx="1" fill="#475569"/>
+                            <rect x="86" y="265" width="8" height="6" rx="1" fill="#475569"/>
+                            <rect x="60" y="276" width="8" height="6" rx="1" fill="#475569"/>
+                            <rect x="73" y="276" width="8" height="6" rx="1" fill="#10B981"/>
+                            <rect x="86" y="276" width="8" height="6" rx="1" fill="#475569"/>
+                        </g>
+                        <g class="anim-float-delayed">
+                            <rect x="280" y="100" width="80" height="55" rx="8" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+                            <rect x="290" y="112" width="40" height="6" rx="3" fill="#38BDF8"/>
+                            <rect x="290" y="124" width="60" height="4" rx="2" fill="#64748B"/>
+                            <rect x="290" y="133" width="50" height="4" rx="2" fill="#64748B"/>
+                            <circle cx="342" cy="114" r="5" fill="#10B981"/>
+                        </g>
+                        <path d="M120 340 L120 310 C120 280 150 240 200 240 C250 240 280 280 280 310 L280 340" fill="#0F172A" />
+                        <path d="M165 240 L200 290 L235 240 C215 260 185 260 165 240 Z" fill="#EAB308" />
+                        <path d="M180 240 L200 270 L220 240 Z" fill="#1E3A8A" />
+                        <rect x="185" y="195" width="30" height="40" rx="5" fill="#FDBA74" />
+                        <circle cx="200" cy="165" r="35" fill="#FDBA74" />
+                        <circle cx="190" cy="160" r="2.5" fill="#1E293B" />
+                        <circle cx="210" cy="160" r="2.5" fill="#1E293B" />
+                        <path d="M185 152 Q190 149 194 152" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+                        <path d="M206 152 Q210 149 214 152" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+                        <path d="M192 175 Q200 183 208 175" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                        <path d="M165 160 C165 125 235 125 235 160 C235 155 220 145 200 145 C180 145 165 155 165 160 Z" fill="#0F172A" />
+                        <path d="M165 160 L170 175 L178 168 Z" fill="#0F172A" />
+                        <path d="M235 160 L230 175 L222 168 Z" fill="#0F172A" />
+                        <g class="anim-float" style="transform-origin: 200px 120px;">
+                            <path d="M130 120 L200 95 L270 120 L200 145 Z" fill="#1E293B" stroke="#0F172A" stroke-width="3" />
+                            <rect x="175" y="130" width="50" height="15" fill="#0F172A" rx="2" />
+                            <path d="M200 115 L255 130 L258 148" stroke="#EAB308" stroke-width="2" fill="none" />
+                            <rect x="254" y="146" width="7" height="12" rx="1" fill="#EAB308" />
+                            <circle cx="200" cy="115" r="4" fill="#0F172A" />
+                        </g>
+                        <g class="anim-float-delayed" style="transform-origin: 130px 290px;">
+                            <path d="M135 285 L95 245 C90 240 82 245 85 252 L110 295" fill="#FDBA74" stroke="#0F172A" stroke-width="2" />
+                            <path d="M92 242 L72 225" stroke="#FDBA74" stroke-width="6" stroke-linecap="round" />
+                        </g>
+                        <g class="anim-float" style="transform-origin: 270px 290px;">
+                            <path d="M265 285 L290 270 C295 267 302 272 299 279 L275 305" fill="#FDBA74" stroke="#0F172A" stroke-width="2" />
+                            <rect x="270" y="240" width="50" height="18" rx="3" fill="#FFFFFF" stroke="#0F172A" stroke-width="2" transform="rotate(-30 270 240)"/>
+                            <rect x="280" y="245" width="20" height="3" fill="#EAB308" transform="rotate(-30 280 245)"/>
+                        </g>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-white mb-2">Sistem Informasi 2025C</h2>
+                <p class="text-slate-400 text-xs text-center max-w-sm leading-relaxed">Sistem manajemen jadwal perkuliahan, voting kelas pengganti, dan notifikasi terintegrasi.</p>
+            </div>
+            <div class="relative z-10 text-[11px] text-slate-500">PantauDos © 2026 • Universitas Negeri Surabaya</div>
+        </div>
+
+        <div class="w-full lg:w-1/2 flex items-center justify-center bg-white p-6 sm:p-8">
+            <div class="w-full max-w-md anim-slide-up">
+                <div class="flex justify-center mb-6 lg:hidden">
+                    <img src="logo unesa coy.png" alt="Logo UNESA" class="w-20 h-20 object-contain drop-shadow-md">
+                </div>
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-1">Login</h2>
+                    <p class="text-slate-500 text-xs mb-6">Masuk menggunakan email kampus dan password Anda:</p>
+                    
+                    <div x-show="authError" x-transition class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-semibold flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span x-text="authError"></span>
+                    </div>
+
+                    <form @submit.prevent="loginWithEmail" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Kampus</label>
+                            <input type="email" x-model="loginData.email" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:bg-white focus:border-brand-royal focus:ring-2 focus:ring-brand-royal/10 transition-all duration-200" placeholder="contoh: monica@unesa.ac.id" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                            <input type="password" x-model="loginData.password" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:bg-white focus:border-brand-royal focus:ring-2 focus:ring-brand-royal/10 transition-all duration-200" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" :disabled="isLoggingIn" class="w-full bg-brand-royal hover:bg-brand-royalHover disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-sm active:scale-[0.98] flex justify-center items-center gap-2">
+                            <span x-show="isLoggingIn" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            <span x-text="isLoggingIn ? 'Memverifikasi...' : 'Login'"></span>
+                        </button>
+                    </form>
+                    <div class="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Database Terkoneksi</span>
+                        <span>S1 SI 2025 C • UNESA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP SHELL -->
+    <div x-show="role !== null" x-cloak class="flex h-screen w-full relative overflow-hidden">
+        
+        <!-- MOBILE SIDEBAR BACKDROP -->
+        <div x-show="isSidebarOpen" 
+             x-transition.opacity 
+             @click="isSidebarOpen = false" 
+             class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm z-30 lg:hidden"></div>
+
+        <!-- SIDEBAR -->
+        <aside :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+               class="fixed lg:static inset-y-0 left-0 w-64 bg-brand-navy flex flex-col justify-between h-full text-slate-300 border-r border-slate-800 shrink-0 z-40 transition-transform duration-300 ease-in-out">
+            <div>
+                <div class="h-16 flex items-center justify-between px-6 border-b border-white/10 mt-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center p-1 overflow-hidden shadow-md">
+                            <img src="logo unesa coy.png" alt="Logo UNESA" class="w-full h-full object-contain">
+                        </div>
+                        <div>
+                            <h1 class="text-xs font-bold text-white leading-none">PantauDos</h1>
+                            <p class="text-[10px] text-slate-400 mt-0.5">S1 SI 2025C</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="isSidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white">✕</button>
+                </div>
+
+                <div class="p-6 border-b border-white/10 flex flex-col items-center text-center cursor-pointer hover:bg-white/5 transition group" @click="isProfileOpen = true; isSidebarOpen = false">
+                    <div class="relative">
+                        <img :src="getAvatar()" class="w-14 h-14 object-cover rounded-full border-2 border-slate-600 mb-2 shadow-md bg-slate-700 group-hover:border-brand-royal transition-colors">
+                        <div class="absolute bottom-2 right-0 bg-brand-royal text-white w-4 h-4 rounded-full flex items-center justify-center border border-brand-navy shadow-sm">
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </div>
+                    </div>
+                    <p class="text-xs font-bold text-white truncate w-full group-hover:text-brand-neon transition-colors" x-text="getUserName()"></p>
+                    <p class="text-[9px] text-slate-400 font-extrabold tracking-wider mt-0.5 uppercase" x-text="role === 'pj' ? ('PJ: ' + (currentUserTargetMatkul || 'Kelas')) : (role === 'dosen' ? 'Akses Dosen' : 'Anggota Kelas')"></p>
+                </div>
+
+                <div class="p-4">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">Menu Utama</p>
+                    <ul class="space-y-1">
+                        <li>
+                            <button type="button" @click="activeMenu = 'dashboard'; isSidebarOpen = false" :class="activeMenu === 'dashboard' ? 'bg-brand-royal text-white font-semibold' : 'text-slate-400 hover:bg-white/5'" class="w-full flex items-center px-3 py-2.5 rounded-lg text-xs transition-all duration-200">
+                                <span>Dashboard Jadwal</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" @click="activeMenu = 'async_board'; isSidebarOpen = false" :class="activeMenu === 'async_board' ? 'bg-brand-royal text-white font-semibold' : 'text-slate-400 hover:bg-white/5'" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs transition-all duration-200">
+                                <span>Tugas Mandiri</span>
+                                <span x-show="remainingTasksCount > 0" class="px-1.5 py-0.5 text-[9px] rounded-full font-bold bg-purple-600 text-white animate-pulse" x-text="remainingTasksCount"></span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" @click="activeMenu = 'wa_logs'; isSidebarOpen = false" :class="activeMenu === 'wa_logs' ? 'bg-brand-royal text-white font-semibold' : 'text-slate-400 hover:bg-white/5'" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs transition-all duration-200">
+                                <span>Log WhatsApp</span>
+                                <span class="px-1.5 py-0.5 text-[9px] rounded-full font-bold bg-emerald-500/10 text-brand-neon border border-emerald-500/20" x-text="waLogs.length"></span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="p-5 border-t border-white/10 space-y-3">
+                <button type="button" @click="triggerLogout()" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold py-2 rounded-lg transition-colors border border-red-500/20 active:scale-95">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span class="text-[11px]">Logout Keluar</span>
+                </button>
+                <div class="bg-white/5 rounded-lg p-3 border border-white/10 flex items-center justify-between">
+                    <span class="text-[9px] font-semibold text-slate-400">Bot WhatsApp</span>
+                    <span x-show="isBotOnline" class="inline-flex items-center gap-1 text-[9px] font-bold text-brand-neon">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand-neon animate-pulse"></span> AKTIF
+                    </span>
+                    <span x-show="!isBotOnline" class="inline-flex items-center gap-1 text-[9px] font-bold text-amber-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> OFFLINE
+                    </span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-[#F5F7FA]">
+            
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between gap-3 px-4 sm:px-8 shrink-0 z-20 shadow-sm relative">
+                <button type="button" @click="isSidebarOpen = true" class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+
+                <div class="flex-1 max-w-md relative" @click.outside="searchQuery = ''">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input type="text" x-model="searchQuery" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:bg-white focus:border-brand-royal focus:ring-2 focus:ring-brand-royal/10 transition-all duration-300" placeholder="Cari mata kuliah, nama dosen, ruang, atau hari...">
+                    <button type="button" x-show="searchQuery !== ''" @click="searchQuery = ''" class="absolute inset-y-0 right-2.5 text-slate-400 hover:text-slate-600 text-xs">✕</button>
+
+                    <div x-show="searchQuery.trim().length >= 2" x-transition class="absolute top-12 left-0 w-full bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden max-h-96 overflow-y-auto custom-scrollbar">
+                        <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-500">
+                            <span>HASIL PENCARIAN</span>
+                            <span class="text-brand-royal bg-blue-50 px-2 py-0.5 rounded" x-text="liveSearchResults.length + ' Ditemukan'"></span>
+                        </div>
+                        <template x-if="liveSearchResults.length === 0">
+                            <div class="p-6 text-center text-xs text-slate-400">Tidak ada jadwal yang cocok dengan kata kunci "<span class="font-bold text-slate-600" x-text="searchQuery"></span>"</div>
+                        </template>
+                        <div class="divide-y divide-slate-100">
+                            <template x-for="item in liveSearchResults" :key="'search-' + item.id">
+                                <div class="p-3 hover:bg-blue-50/40 transition-colors flex justify-between items-start gap-3">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-0.5">
+                                            <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-50 text-brand-royal uppercase" x-text="item.isRescheduled ? (item.actualDay + ' (Pindah)') : item.day"></span>
+                                            <span class="text-[10px] font-semibold text-slate-500" x-text="item.isRescheduled ? item.actualTime : item.time"></span>
+                                        </div>
+                                        <h4 class="text-xs font-bold text-slate-800 leading-snug" x-text="item.course"></h4>
+                                        <p class="text-[10px] text-slate-400 mt-0.5"><span x-text="item.dosen"></span> • <span class="font-medium text-slate-600" x-text="'Ruang: ' + item.room"></span></p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <template x-if="item.isHadir"><span class="inline-block text-[9px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">Dosen Hadir</span></template>
+                                        <template x-if="item.isAsyncTask"><span class="inline-block text-[9px] font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200">Tugas</span></template>
+                                        <template x-if="item.actualOnline && item.gmeetLink"><a :href="item.gmeetLink" target="_blank" class="block mt-1 text-[9px] font-bold text-brand-royal hover:underline">Link GMeet</a></template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                    <template x-if="role === 'dosen' || role === 'pj'">
+                        <button type="button" @click="resetAllDemoData" class="text-[10px] font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-red-200 active:scale-95 transition-all">Reset Data</button>
+                    </template>
+                    <span class="text-[10px] font-bold text-brand-royal bg-blue-50 border border-blue-200 px-3 py-1 rounded-full uppercase shadow-sm" x-text="role"></span>
+                </div>
+            </header>
+
+            <div class="p-4 sm:p-8 overflow-y-auto h-full pb-24 space-y-8 scroll-smooth custom-scrollbar">
+                
+                <!-- VIEW 1: TUGAS MANDIRI -->
+                <div x-show="activeMenu === 'async_board'" x-transition class="space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Daftar Tugas Mandiri</h2>
+                            <p class="text-slate-500 text-xs mt-0.5">Kumpulan instruksi untuk kelas yang dialihkan jadi tugas mandiri.</p>
+                        </div>
+                    </div>
+                    <template x-if="getAsyncCourses().length === 0">
+                        <div class="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
+                            <h3 class="text-xs font-bold text-slate-800">Tidak ada tugas mandiri</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5 max-w-sm mx-auto">Semua perkuliahan berjalan reguler atau belum ada pengalihan tugas dari dosen.</p>
+                        </div>
+                    </template>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <template x-for="(item, index) in getAsyncCourses()" :key="item.taskKey">
+                            <div class="bg-white rounded-xl border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between overflow-hidden anim-slide-up" :style="`animation-delay: ${index * 80}ms; animation-fill-mode: both;`">
+                                <div class="h-1 w-full bg-purple-500"></div>
+                                <div class="p-6">
+                                    <div class="flex justify-between items-start gap-2 mb-3">
+                                        <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-100" x-text="item.autoFallback ? 'Otomatis (Jadwal Ditolak)' : 'Instruksi Dosen'"></span>
+                                        <span class="text-[10px] font-bold text-slate-400" x-text="item.day + ', ' + item.time"></span>
+                                    </div>
+                                    <h3 class="text-base font-bold text-slate-900" x-text="item.course"></h3>
+                                    <p class="text-[11px] text-slate-500 font-medium mb-4" x-text="item.dosen + ' • ' + item.sks + ' SKS'"></p>
+                                    <div class="bg-purple-50 border border-purple-100 rounded-lg p-3.5 mb-3">
+                                        <p class="text-[9px] font-bold text-purple-900 uppercase tracking-wide mb-1">Instruksi Tugas:</p>
+                                        <p class="text-xs text-purple-950 leading-relaxed font-medium" x-text="item.taskNote || 'Selesaikan penugasan mandiri yang diberikan dosen pekan ini.'"></p>
+                                    </div>
+                                </div>
+                                <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                                    <span class="text-[10px] font-medium text-slate-500">Deadline: Minggu Ini</span>
+                                    <template x-if="role === 'mhs'">
+                                        <button type="button" @click="toggleTaskDone(item.taskKey)" :class="isTaskDone(item.taskKey) ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white border border-purple-200 text-purple-700 hover:bg-purple-50'" class="px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 active:scale-[0.98]">
+                                            <span x-text="isTaskDone(item.taskKey) ? '✓ Selesai' : 'Tandai Selesai'"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: LOG WA -->
+                <div x-show="activeMenu === 'wa_logs'" x-transition class="space-y-6">
+                    <div class="flex justify-between items-end border-b border-slate-200 pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Log Notifikasi WhatsApp</h2>
+                            <p class="text-slate-500 text-xs mt-0.5">Riwayat pesan sistem yang dikirim otomatis oleh bot.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="divide-y divide-slate-100">
+                            <template x-for="(log, index) in waLogs" :key="log.id">
+                                <div class="p-5 hover:bg-slate-50/50 transition-colors duration-150 flex flex-col md:flex-row justify-between gap-4 anim-slide-up" :style="`animation-delay: ${index * 50}ms; animation-fill-mode: both;`">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0 border border-emerald-100">W</div>
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-xs font-bold text-slate-800" x-text="log.target"></span>
+                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">TERKIRIM</span>
+                                                <span class="text-[10px] text-slate-400" x-text="log.time"></span>
+                                            </div>
+                                            <p class="text-xs text-slate-600 whitespace-pre-line bg-slate-50 p-3 rounded-lg border border-slate-200 mt-1.5 font-mono" x-text="log.message"></p>
+                                        </div>
+                                    </div>
+                                    <div class="shrink-0 flex items-center">
+                                        <button type="button" @click="copyText(log.message, 'Teks berhasil disalin.')" class="px-3 py-1.5 border border-slate-200 hover:border-brand-royal hover:bg-blue-50 text-slate-600 hover:text-brand-royal rounded-lg text-xs font-semibold transition-all active:scale-[0.98]">Salin Teks</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 3: DASHBOARD UTAMA -->
+                <div x-show="activeMenu === 'dashboard'" x-transition class="space-y-8">
+                    
+                    <!-- PAPAN PENGUMUMAN BERSAMA -->
+                    <div class="anim-slide-up">
+                        <div class="bg-brand-navy rounded-xl border border-slate-800 overflow-hidden shadow-md">
+                            <div class="px-5 py-3 border-b border-white/10 flex justify-between items-center bg-white/5">
+                                <h3 class="text-xs font-bold text-white tracking-wide flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-brand-neon animate-pulse"></span> Papan Pengumuman Kelas
+                                </h3>
+                                <span class="text-[9px] text-slate-400 font-semibold">Ketik !info di Grup WA</span>
+                            </div>
+                            <div class="p-5 max-h-48 overflow-y-auto custom-scrollbar space-y-3">
+                                <template x-if="announcements.length === 0">
+                                    <p class="text-[10px] text-slate-500 text-center italic py-2">Belum ada pengumuman terbaru.</p>
+                                </template>
+                                <template x-for="ann in announcements" :key="ann.id">
+                                    <div class="bg-white/5 border border-white/10 rounded-lg p-3.5 relative group">
+                                        <div class="flex items-center gap-2 mb-1.5">
+                                            <span class="text-[9px] font-bold px-2 py-0.5 rounded" :class="(ann.sender || '').includes('PJ') ? 'bg-blue-900/50 text-blue-300' : 'bg-emerald-900/50 text-emerald-300'" x-text="ann.sender"></span>
+                                            <span class="text-[9px] text-slate-400" x-text="ann.timestamp"></span>
+                                        </div>
+                                        <p class="text-xs text-slate-200 leading-relaxed" x-text="ann.message"></p>
+                                        <template x-if="role === 'pj' || role === 'dosen'">
+                                            <button type="button" @click="deleteAnnouncement(ann.id)" class="absolute top-3 right-3 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all text-xs font-bold">✕</button>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                            <template x-if="role === 'pj' || role === 'dosen'">
+                                <div class="p-4 bg-slate-900/50 border-t border-white/5 flex flex-col sm:flex-row gap-2">
+                                    <input type="text" x-model="newAnnouncementText" placeholder="Ketik pengumuman baru untuk kelas..." class="flex-1 bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-brand-royal transition-colors">
+                                    <button type="button" @click="postAnnouncement()" class="px-4 py-2 bg-brand-royal hover:bg-brand-royalHover text-white text-xs font-bold rounded-lg transition-colors shrink-0">Kirim &amp; Blast WA</button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- AREA DOSEN -->
+                    <template x-if="role === 'dosen'">
+                        <div class="anim-slide-up" style="animation-delay: 100ms;">
+                            <div class="mb-5 flex justify-between items-end">
+                                <div>
+                                    <h2 class="text-xl font-bold text-slate-900 mb-0.5">Jadwal Mengajar Anda</h2>
+                                    <p class="text-slate-500 text-xs">Kelola kehadiran atau ajukan perubahan jadwal kelas <strong class="text-brand-royal">S1 SI 2025 C</strong>.</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                                <div class="xl:col-span-2">
+                                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1.5">Jadwal Aktif</h3>
+                                    <div class="space-y-5">
+                                        <template x-for="(item, index) in mergedSchedules.filter(s => isMyCourse(s.dosen))" :key="item.id">
+                                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all duration-300 overflow-hidden anim-slide-up"
+                                                 :style="`animation-delay: ${index * 100}ms; animation-fill-mode: both;`"
+                                                 :class="{'ring-1 ring-amber-400 border-amber-400': item.reqStatus === 'pending', 'ring-1 ring-brand-royal border-brand-royal': item.isRescheduled, 'ring-1 ring-purple-400 border-purple-400': item.isAsyncTask}">
+                                                <div class="p-6">
+                                                    <div class="flex justify-between items-start mb-2.5">
+                                                        <div class="text-brand-royal font-bold text-base leading-tight" x-text="item.day + ' • ' + item.time"></div>
+                                                        <template x-if="!item.reqStatus && !item.isAsyncTask && !item.isHadir"><span class="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-50 border uppercase">Jadwal Patokan</span></template>
+                                                        <template x-if="item.isHadir"><span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">✓ Hadir (<span x-text="item.attendanceCount + '/34'"></span>)</span></template>
+                                                        <template x-if="item.isAsyncTask"><span class="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200 uppercase">Tugas Mandiri</span></template>
+                                                        <template x-if="item.reqStatus === 'pending'"><span class="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 uppercase animate-pulse">Menunggu PJ</span></template>
+                                                        <template x-if="item.isRescheduled"><span class="text-[9px] font-bold px-2 py-0.5 rounded bg-brand-royal/10 text-brand-royal border border-brand-royal/20 uppercase">Jadwal Pengganti Aktif</span></template>
+                                                    </div>
+                                                    <h4 class="font-bold text-slate-800 text-lg mb-0.5" x-text="item.course"></h4>
+                                                    <p class="text-xs text-slate-400 font-medium mb-3.5" x-text="'Kelas S1 SI 2025 C • SKS: ' + item.sks"></p>
+                                                    <template x-if="!item.isRescheduled && !item.isAsyncTask">
+                                                        <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 flex items-center justify-between text-xs">
+                                                            <p class="font-semibold text-slate-700">Ruang: <span x-text="item.room"></span></p>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="item.isRescheduled">
+                                                        <div class="bg-blue-50/40 rounded-lg p-4 border border-blue-100 space-y-2 mt-3">
+                                                            <p class="text-[9px] text-brand-royal font-extrabold uppercase tracking-wide">Jadwal Pengganti Disetujui PJ (Opsi <span x-text="item.selectedOption"></span>):</p>
+                                                            <p class="text-sm font-bold text-slate-800"><span x-text="item.actualDay + ', ' + item.actualTime"></span></p>
+                                                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                                                <span class="text-[9px] font-bold px-2 py-0.5 rounded" :class="item.actualOnline ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600 border'" x-text="item.actualOnline ? 'Online' : ('Tatap Muka • Ruang ' + item.room)"></span>
+                                                                <template x-if="item.actualOnline">
+                                                                    <div>
+                                                                        <template x-if="!item.gmeetLink && item.askPjForGmeet"><span class="text-[9px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 animate-pulse">Menunggu GMeet PJ</span></template>
+                                                                        <template x-if="item.gmeetLink"><a :href="item.gmeetLink" target="_blank" class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-emerald-600 text-white hover:bg-emerald-700 inline-block">Buka Link GMeet</a></template>
+                                                                    </div>
+                                                                </template>
+                                                                <a :href="getGoogleCalendarUrl(item)" target="_blank" class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-white text-brand-royal border border-blue-200 hover:bg-blue-50 inline-block">+ Google Calendar</a>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="item.isAsyncTask && item.autoFallback">
+                                                        <div class="mt-3 bg-purple-50 p-4 border border-purple-100 rounded-lg">
+                                                            <p class="text-xs font-bold text-purple-900 mb-0.5">Otomatis Diubah Menjadi Tugas</p>
+                                                            <p class="text-[11px] text-purple-800">Jadwal ditolak oleh PJ karena: <strong x-text="item.rejectReason"></strong>. Maka kelas ini dialihkan menjadi tugas mandiri.</p>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div class="bg-slate-50 border-t border-slate-100 p-4 flex flex-col gap-2">
+                                                    <div class="flex flex-wrap gap-3 items-center">
+                                                        <button type="button" @click="markHadir(item.id)" :disabled="item.reqStatus === 'pending' || item.isAsyncTask" :class="item.isHadir ? 'bg-emerald-600 text-white border-emerald-600 font-bold' : (item.reqStatus === 'pending' || item.isAsyncTask ? 'opacity-45 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : 'border-brand-royal text-brand-royal bg-blue-50 hover:bg-blue-100')" class="px-3.5 py-2.5 border rounded-lg text-xs font-semibold flex-1 text-center shadow-sm active:scale-[0.98] transition-all">
+                                                            <span x-text="item.isHadir ? 'Konfirmasi Kehadiran Selesai' : 'Konfirmasi Kehadiran'"></span>
+                                                        </button>
+                                                        <button type="button" @click="openAjukanModal(item)" :disabled="item.isHadir" :class="item.isHadir ? 'opacity-45 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : 'bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300'" class="px-3.5 py-2.5 border rounded-lg text-xs font-semibold flex-1 text-center shadow-sm active:scale-[0.98] transition-all">
+                                                            <span x-text="item.reqStatus === 'pending' || item.isRescheduled || item.isAsyncTask ? 'Ubah Pengajuan / Jadwal' : 'Berhalangan / Pindah'"></span>
+                                                        </button>
+                                                    </div>
+                                                    <div x-show="item.reqStatus === 'pending' || item.isRescheduled || item.isAsyncTask" class="flex justify-between items-center pt-1">
+                                                        <span class="text-[10px] text-slate-500 font-medium">Status saat ini: Jadwal tidak di patokan reguler</span>
+                                                        <button type="button" @click="revertToRegularSchedule(item.id)" class="text-[10px] text-brand-royal hover:text-blue-800 font-bold underline transition-colors">Kembalikan ke Jadwal Reguler</button>
+                                                    </div>
+                                                    <div x-show="item.isHadir" x-transition class="flex justify-between items-center pt-1">
+                                                        <span class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                                                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block"></span> Sinkron ke database (<span x-text="item.attendanceCount + '/34 mahasiswa hadir'"></span>)
+                                                        </span>
+                                                        <button type="button" @click="resetHadir(item.id)" class="text-[10px] text-slate-500 hover:text-red-600 font-semibold underline transition-colors">Batal Kehadiran</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="xl:col-span-1">
+                                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1.5">Agenda Pribadi</h3>
+                                    <div class="bg-white rounded-xl border border-brand-royal/20 shadow-sm p-6 mb-6 relative overflow-hidden anim-slide-up" style="animation-delay: 200ms;">
+                                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-royal to-blue-400"></div>
+                                        <h5 class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 mt-2">+ Tambah Agenda</h5>
+                                        <div class="space-y-3 mb-6 border-b border-slate-100 pb-5">
+                                            <input type="text" x-model="newAgenda.title" placeholder="Nama agenda / rapat..." class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-brand-royal focus:ring-2 focus:ring-brand-royal/10 transition-all">
+                                            <input type="time" x-model="newAgenda.time" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-brand-royal focus:ring-2 focus:ring-brand-royal/10 transition-all">
+                                            <button type="button" @click="addAgenda" class="w-full bg-brand-royal hover:bg-brand-royalHover text-white text-xs font-semibold py-2 rounded-lg transition-all shadow-sm active:scale-[0.98]">Simpan</button>
+                                        </div>
+                                        <h5 class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Agenda Tersimpan</h5>
+                                        <div class="space-y-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                                            <template x-for="agenda in filteredAgendas" :key="agenda.id">
+                                                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg shadow-sm flex justify-between items-center hover:bg-white hover:border-slate-300 group transition-all">
+                                                    <div>
+                                                        <p class="text-xs font-bold text-slate-700 group-hover:text-brand-royal transition-colors" x-text="agenda.cleanTitle"></p>
+                                                        <p class="text-[9px] text-slate-400 mt-0.5" x-text="agenda.time + ' WIB'"></p>
+                                                    </div>
+                                                    <button type="button" @click="removeAgenda(agenda.id)" class="text-slate-400 hover:text-red-500 text-xs px-1 hover:scale-110 transition-transform">✕</button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- AREA PJ KELAS -->
+                    <template x-if="role === 'pj'">
+                        <div class="anim-slide-up" style="animation-delay: 100ms;">
+                            <div class="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h2 class="text-xl font-bold text-slate-900 mb-0.5">Dashboard Penanggung Jawab Kelas</h2>
+                                    <p class="text-slate-500 text-xs">Konfirmasi persetujuan jadwal pengganti dan koordinasi data kelas.</p>
+                                </div>
+                            </div>
+                            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1.5">Agenda Konfirmasi PJ</h3>
+                            <div class="space-y-5">
+                                <template x-for="req in getApprovedRequestsNeedingGmeet()" :key="'gmeet-'+req.id">
+                                    <div class="bg-amber-50/50 border border-amber-300 rounded-xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:shadow-md transition-all transform hover:-translate-y-1">
+                                        <div>
+                                            <div class="inline-flex px-2.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide mb-1">Dibutuhkan Link Google Meet</div>
+                                            <h4 class="font-bold text-slate-800 text-base" x-text="getCourse(req.scheduleId).course"></h4>
+                                            <p class="text-xs text-slate-600 mt-0.5">Jadwal pengganti online telah disepakati. Harap input link GMeet untuk kelas ini.</p>
+                                        </div>
+                                        <div class="flex items-center gap-2 w-full md:w-auto">
+                                            <input type="url" x-model="pjInputGmeet[req.id]" placeholder="https://meet.google.com/..." class="px-3 py-2 bg-white border border-amber-200 rounded-lg text-xs w-full md:w-64 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all" required>
+                                            <button type="button" @click="submitGmeetByPj(req.id)" class="px-3.5 py-2 bg-brand-royal hover:bg-brand-royalHover text-white text-xs font-bold rounded-lg shrink-0 transition-all active:scale-[0.98]">Kirim</button>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="getPendingRequests().length === 0 && getApprovedRequestsNeedingGmeet().length === 0">
+                                    <div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-400 text-xs shadow-sm">Tidak ada pengajuan jadwal yang membutuhkan tindakan Anda.</div>
+                                </template>
+                                <template x-for="(req, index) in getPendingRequests()" :key="req.id">
+                                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm relative overflow-hidden anim-slide-up hover:shadow-md transition-shadow" :style="`animation-delay: ${index * 150}ms; animation-fill-mode: both;`">
+                                        <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                            <div>
+                                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                                    <span class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 uppercase">Butuh Persetujuan PJ</span>
+                                                    <template x-if="hasReachedQuorum(req)">
+                                                        <span class="text-[9px] font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase animate-pulse" x-text="'🔥 ' + getLeadingOptionLabel(req)"></span>
+                                                    </template>
+                                                    <span class="text-xs text-slate-400" x-text="req.datePosted"></span>
+                                                </div>
+                                                <h4 class="text-lg font-bold text-slate-800" x-text="getCourse(req.scheduleId).dosen + ' — ' + getCourse(req.scheduleId).course"></h4>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 mt-3 md:mt-0">
+                                                <button type="button" @click="generatePJChat(req)" class="px-3 py-2 bg-blue-50 border border-blue-200 text-brand-royal hover:bg-blue-100 rounded-lg text-[10px] font-bold transition-all active:scale-[0.98] flex items-center gap-1.5 shadow-sm">Salin Draft WA Dosen</button>
+                                                <button type="button" @click="copyPollingLink(req)" class="px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 rounded-lg text-[10px] font-bold transition-all active:scale-[0.98] flex items-center gap-1.5 shadow-sm">Salin Polling WA</button>
+                                                <button type="button" @click="openRejectModal(req.id)" class="px-3 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-[10px] font-bold transition-all active:scale-[0.98] shadow-sm">Tolak Usulan</button>
+                                            </div>
+                                        </div>
+                                        <div class="p-6 bg-slate-50 space-y-4">
+                                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2.5">
+                                                    <span class="text-[10px] font-extrabold uppercase tracking-wide text-brand-navy">Hasil Voting (<span x-text="getTotalVotes(req) + '/34 Suara • Kuorum: 18'"></span>)</span>
+                                                </div>
+                                                <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+                                                    <div class="bg-brand-green h-full polling-bar-transition" :style="'width: ' + getVotePercent(req, 'opt1') + '%'"></div>
+                                                    <div x-show="req.hasOpt2" class="bg-brand-royal h-full polling-bar-transition" :style="'width: ' + getVotePercent(req, 'opt2') + '%'"></div>
+                                                    <div class="bg-red-400 h-full polling-bar-transition" :style="'width: ' + getVotePercent(req, 'reject') + '%'"></div>
+                                                </div>
+                                                <div class="flex justify-between text-[10px] font-bold mt-1.5">
+                                                    <span class="text-emerald-700" x-text="'Opsi 1: ' + (req.votes?.opt1 || 0) + ' (' + getVotePercent(req, 'opt1') + '%)'"></span>
+                                                    <span x-show="req.hasOpt2" class="text-brand-royal" x-text="'Opsi 2: ' + (req.votes?.opt2 || 0) + ' (' + getVotePercent(req, 'opt2') + '%)'"></span>
+                                                    <span class="text-red-500" x-text="'Bentrok: ' + (req.votes?.reject || 0) + ' (' + getVotePercent(req, 'reject') + '%)'"></span>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1" :class="req.hasOpt2 ? 'md:grid-cols-2 gap-5' : 'max-w-md'">
+                                                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5">
+                                                    <div class="flex justify-between items-start mb-2">
+                                                        <span class="text-[9px] font-extrabold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">OPSI JADWAL 1</span>
+                                                        <span class="text-[9px] font-bold border px-1.5 py-0.5 rounded text-slate-500" x-text="req.opt1?.isOnline ? 'Online' : 'Tatap Muka'"></span>
+                                                    </div>
+                                                    <p class="text-xl font-bold text-brand-navy mb-4"><span x-text="req.opt1?.day"></span>, <span x-text="req.opt1?.time"></span></p>
+                                                    <button type="button" @click="approveOption(req.id, 1)" class="w-full bg-brand-green hover:bg-green-600 text-white font-bold py-2 rounded-lg text-xs transition-all active:scale-[0.98]">Pilih Opsi 1</button>
+                                                </div>
+                                                <template x-if="req.hasOpt2">
+                                                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5">
+                                                        <div class="flex justify-between items-start mb-2">
+                                                            <span class="text-[9px] font-extrabold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">OPSI JADWAL 2</span>
+                                                            <span class="text-[9px] font-bold border px-1.5 py-0.5 rounded text-slate-500" x-text="req.opt2?.isOnline ? 'Online' : 'Tatap Muka'"></span>
+                                                        </div>
+                                                        <p class="text-xl font-bold text-brand-navy mb-4"><span x-text="req.opt2?.day"></span>, <span x-text="req.opt2?.time"></span></p>
+                                                        <button type="button" @click="approveOption(req.id, 2)" class="w-full bg-brand-royal hover:bg-brand-royalHover text-white font-bold py-2 rounded-lg text-xs transition-all active:scale-[0.98]">Pilih Opsi 2</button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <template x-if="req.askPjForGmeet && (req.opt1?.isOnline || (req.hasOpt2 && req.opt2?.isOnline))">
+                                                <p class="text-[10px] text-amber-800 font-semibold bg-amber-50 p-3 rounded-lg border border-amber-200">Dosen meminta link Google Meet apabila opsi kelas online disetujui.</p>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- AREA MAHASISWA -->
+                    <template x-if="role === 'mhs'">
+                        <div class="space-y-6 anim-slide-up" style="animation-delay: 100ms;">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h2 class="text-xl font-bold text-slate-900 mb-0.5">Jadwal Kuliah</h2>
+                                    <p class="text-slate-500 text-xs">Pantau kelas pengganti, isi presensi kehadiran, dan ikuti jajak pendapat perubahan jadwal.</p>
+                                </div>
+                                <button type="button" @click="activeMenu = 'async_board'" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95">
+                                    Cek Tugas Mandiri (<span x-text="remainingTasksCount"></span> Tersisa)
+                                </button>
+                            </div>
+                            <template x-if="getPendingRequests().length > 0">
+                                <div class="bg-blue-50/50 border border-brand-royal/20 rounded-xl p-5 shadow-sm space-y-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-5 h-5 rounded-full bg-brand-royal text-white flex items-center justify-center font-bold text-[10px]">V</div>
+                                        <div>
+                                            <h3 class="text-xs font-bold text-brand-navy uppercase tracking-wide">Voting Perubahan Jadwal</h3>
+                                            <p class="text-[10px] text-slate-500">Pilih alternatif waktu yang sesuai untuk Anda. 1 mahasiswa = 1 suara (Kuorum: 18 suara).</p>
+                                        </div>
+                                    </div>
+                                    <template x-for="(req, index) in getPendingRequests()" :key="'mhs-poll-'+req.id">
+                                        <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <p class="font-bold text-slate-800 text-xs" x-text="getCourse(req.scheduleId).course + ' (' + getCourse(req.scheduleId).dosen + ')'"></p>
+                                                    <template x-if="hasReachedQuorum(req)">
+                                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">🔥 Kuorum Tercapai</span>
+                                                    </template>
+                                                </div>
+                                                <p class="text-[10px] text-slate-400 mt-0.5">Suara masuk: <span class="font-bold text-brand-royal" x-text="getTotalVotes(req) + '/34 mahasiswa'"></span></p>
+                                            </div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <button type="button" @click="addVote(req.id, 'opt1')" :class="hasUserVoted[req.id] ? 'bg-slate-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'" class="px-3 py-1.5 text-white rounded-lg text-[10px] font-bold shadow-sm active:scale-[0.98] transition-colors">
+                                                    Opsi 1: <span x-text="req.opt1?.day + ' ' + req.opt1?.time"></span> (<span x-text="req.votes?.opt1 || 0"></span>)
+                                                </button>
+                                                <template x-if="req.hasOpt2">
+                                                    <button type="button" @click="addVote(req.id, 'opt2')" :class="hasUserVoted[req.id] ? 'bg-slate-300 cursor-not-allowed' : 'bg-brand-royal hover:bg-brand-royalHover'" class="px-3 py-1.5 text-white rounded-lg text-[10px] font-bold shadow-sm active:scale-[0.98] transition-colors">
+                                                        Opsi 2: <span x-text="req.opt2?.day + ' ' + req.opt2?.time"></span> (<span x-text="req.votes?.opt2 || 0"></span>)
+                                                    </button>
+                                                </template>
+                                                <button type="button" @click="addVote(req.id, 'reject')" :class="hasUserVoted[req.id] ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' : 'bg-white border-red-200 text-red-600 hover:bg-red-50'" class="px-3 py-1.5 border rounded-lg text-[10px] font-bold shadow-sm active:scale-[0.98] transition-colors">
+                                                    Bentrok (<span x-text="req.votes?.reject || 0"></span>)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- TABEL UTAMA -->
+                    <div class="pt-2 anim-slide-up" style="animation-delay: 150ms;">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-slate-200 pb-5">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 tracking-tight">Jadwal Perkuliahan S1 SI 2025 C</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Pantau jadwal reguler dan pembaruan jadwal perkuliahan.</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="inline-flex p-1 bg-slate-200/60 rounded-full border border-slate-200 shadow-inner">
+                                    <button type="button" @click="scheduleView = 'master'" :class="scheduleView === 'master' ? 'bg-brand-royal text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'" class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 flex items-center gap-1.5">Jadwal Reguler</button>
+                                    <button type="button" @click="scheduleView = 'realtime'" :class="scheduleView === 'realtime' ? 'bg-brand-royal text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'" class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Jadwal Live
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6 relative">
+                            <template x-for="(dayName, index) in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']" :key="dayName">
+                                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden anim-slide-up hover:shadow-md transition-shadow"
+                                     :style="`animation-delay: ${index * 80}ms; animation-fill-mode: both;`">
+                                    <div class="px-6 py-3.5 bg-slate-50/60 border-b border-slate-200 flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-bold text-slate-800 text-xs tracking-wide uppercase" x-text="dayName"></h4>
+                                            <span class="text-[9px] font-semibold text-slate-400" x-text="'(' + getDailySksLoad(dayName) + ' SKS Aktif)'"></span>
+                                        </div>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="getSchedulesByDay(dayName).length > 0 ? 'bg-blue-50 text-brand-royal' : 'bg-slate-100 text-slate-400'" x-text="getSchedulesByDay(dayName).length + ' Kelas'"></span>
+                                    </div>
+                                    <div x-show="getSchedulesByDay(dayName).length === 0">
+                                        <div class="p-6 text-center text-slate-400 text-xs italic">Tidak ada jadwal perkuliahan.</div>
+                                    </div>
+                                    <div x-show="getSchedulesByDay(dayName).length > 0">
+                                        <div class="overflow-x-auto custom-scrollbar">
+                                            <table class="w-full min-w-[600px] text-left border-collapse text-xs">
+                                                <thead>
+                                                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                                                        <th class="py-3.5 px-6 w-[18%]">Waktu</th>
+                                                        <th class="py-3.5 px-6 w-[35%]">Mata Kuliah &amp; SKS</th>
+                                                        <th class="py-3.5 px-6 w-[24%]">Dosen</th>
+                                                        <th class="py-3.5 px-6 w-[23%]">Ruang &amp; Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100">
+                                                    <template x-for="item in getSchedulesByDay(dayName)" :key="item.uniqueKey">
+                                                        <tr class="transition-colors duration-200 hover:bg-slate-50/50"
+                                                            :class="{ 'bg-blue-50/30': scheduleView === 'realtime' && item.isMovedHere, 'opacity-50 hover:opacity-75': scheduleView === 'realtime' && item.isMovedAway, 'bg-purple-50/10': scheduleView === 'realtime' && item.isAsyncTask, 'bg-emerald-50/15': scheduleView === 'realtime' && item.isHadir && !item.isMovedAway }">
+                                                            <td class="py-4 px-6 align-top font-bold text-slate-700 space-y-1">
+                                                                <span class="inline-block px-2 py-0.5 rounded border border-slate-200 bg-white shadow-sm" :class="item.isMovedAway ? 'line-through text-slate-400' : ''"><span x-text="item.displayTime"></span></span>
+                                                                <template x-if="isClassOngoing(item, dayName)">
+                                                                    <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200 text-[9px] font-extrabold animate-pulse">
+                                                                        <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span> LIVE
+                                                                    </div>
+                                                                </template>
+                                                            </td>
+                                                            <td class="py-4 px-6 align-top">
+                                                                <div>
+                                                                    <p class="font-bold text-slate-800 text-xs" :class="item.isMovedAway ? 'line-through text-slate-400' : ''" x-text="item.course"></p>
+                                                                    <span class="inline-block mt-1 text-[9px] font-semibold text-slate-400 bg-white border px-1.5 py-0.5 rounded" x-text="item.sks + ' SKS'"></span>
+                                                                    <template x-if="scheduleView === 'realtime' && item.isMovedHere"><span class="ml-1 inline-block text-[9px] font-bold bg-blue-100 text-brand-royal px-1.5 py-0.5 rounded border border-blue-200">Pindahan dari <span x-text="item.originalDay"></span></span></template>
+                                                                    <template x-if="scheduleView === 'realtime' && item.isMovedAway"><span class="ml-1 inline-block text-[9px] font-bold bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200">Pindah ke <span x-text="item.movedToDay + ' (' + item.movedToTime + ')'"></span></span></template>
+                                                                </div>
+                                                            </td>
+                                                            <td class="py-4 px-6 align-top">
+                                                                <p class="font-medium text-slate-700" x-text="item.dosen"></p>
+                                                                <span x-show="isMyCourse(item.dosen)" class="inline-block mt-0.5 text-[9px] font-bold text-brand-royal bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Dosen Pengajar</span>
+                                                            </td>
+                                                            <td class="py-4 px-6 align-top">
+                                                                <template x-if="scheduleView === 'master'">
+                                                                    <div class="space-y-1.5">
+                                                                        <p class="font-semibold text-slate-700" x-text="'Ruang ' + item.room"></p>
+                                                                        <span class="inline-block text-[9px] text-slate-400">Tatap Muka</span>
+                                                                        <template x-if="item.isHadir">
+                                                                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                                                                <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">✓ Dosen Hadir (<span x-text="item.attendanceCount + '/34'"></span>)</span>
+                                                                                <template x-if="role === 'mhs'">
+                                                                                    <button type="button" @click="markStudentPresent(item)" :disabled="hasStudentAttended(item)" :class="hasStudentAttended(item) ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-default' : 'bg-brand-royal hover:bg-brand-royalHover text-white border-brand-royal shadow-sm active:scale-95'" class="px-2 py-0.5 rounded text-[9px] font-bold border transition-all">
+                                                                                        <span x-text="hasStudentAttended(item) ? '✓ Sudah Presensi' : 'Hadir Kelas'"></span>
+                                                                                    </button>
+                                                                                </template>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                </template>
+                                                                <template x-if="scheduleView === 'realtime'">
+                                                                    <div>
+                                                                        <template x-if="item.isMovedAway"><span class="text-[10px] text-slate-400 italic">Jadwal dialihkan.</span></template>
+                                                                        <template x-if="item.isAsyncTask"><span class="inline-block text-[9px] font-semibold bg-purple-100 text-purple-800 border border-purple-200 px-2 py-0.5 rounded">Tugas Mandiri</span></template>
+                                                                        <template x-if="!item.isMovedAway && !item.isAsyncTask">
+                                                                            <div class="space-y-1.5">
+                                                                                <p class="font-semibold" :class="item.effectiveOnline ? 'text-emerald-700' : 'text-slate-700'"><span x-text="item.effectiveOnline ? '🌐 Online' : 'Ruang ' + item.room"></span></p>
+                                                                                <template x-if="item.effectiveOnline">
+                                                                                    <div class="flex flex-wrap gap-1.5">
+                                                                                        <template x-if="item.gmeetLink"><a :href="item.gmeetLink" target="_blank" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">Link GMeet</a></template>
+                                                                                        <template x-if="!item.gmeetLink"><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">Menunggu Link Meet</span></template>
+                                                                                    </div>
+                                                                                </template>
+                                                                                <template x-if="item.isRescheduled">
+                                                                                    <div>
+                                                                                        <a :href="getGoogleCalendarUrl(item)" target="_blank" class="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-brand-royal border border-blue-200 hover:bg-blue-100">+ Google Calendar</a>
+                                                                                    </div>
+                                                                                </template>
+                                                                                <template x-if="item.isHadir">
+                                                                                    <div class="flex flex-wrap items-center gap-1.5">
+                                                                                        <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">✓ Dosen Hadir (<span x-text="item.attendanceCount + '/34'"></span>)</span>
+                                                                                        <template x-if="role === 'mhs'">
+                                                                                            <button type="button" @click="markStudentPresent(item)" :disabled="hasStudentAttended(item)" :class="hasStudentAttended(item) ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-default' : 'bg-brand-royal hover:bg-brand-royalHover text-white border-brand-royal shadow-sm active:scale-95'" class="px-2 py-0.5 rounded text-[9px] font-bold border transition-all">
+                                                                                                <span x-text="hasStudentAttended(item) ? '✓ Sudah Presensi' : 'Hadir Kelas'"></span>
+                                                                                            </button>
+                                                                                        </template>
+                                                                                    </div>
+                                                                                </template>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                </template>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- OFFCANVAS PROFILE PANEL -->
+        <div x-show="isProfileOpen" class="fixed inset-0 z-[70] flex justify-end" x-cloak>
+            <div class="absolute inset-0 bg-brand-navy/60 backdrop-blur-sm" x-transition.opacity @click="isProfileOpen = false"></div>
+            <div class="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col transform overflow-y-auto custom-scrollbar" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <h3 class="text-lg font-bold text-slate-800">Profil Saya</h3>
+                    <button type="button" @click="isProfileOpen = false" class="text-slate-400 hover:text-slate-700 transition-colors hover:rotate-90">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="relative group mb-3">
+                            <img :src="getAvatar()" class="w-24 h-24 object-cover rounded-full border-4 border-slate-100 shadow-md">
+                            <label class="absolute inset-0 bg-black/50 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <span x-show="isUploadingAvatar" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span x-show="!isUploadingAvatar" class="text-[10px] font-bold">Ubah Foto</span>
+                                <input type="file" class="hidden" accept="image/png, image/jpeg, image/jpg" @change="uploadAvatar" :disabled="isUploadingAvatar">
+                            </label>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900" x-text="getUserName()"></h4>
+                        <p class="text-xs text-slate-500 font-medium" x-text="currentUserEmail"></p>
+                        <span class="inline-block mt-2 px-3 py-1 bg-blue-50 text-brand-royal text-[10px] font-extrabold rounded uppercase border border-blue-100" x-text="role === 'pj' ? 'Penanggung Jawab' : (role === 'dosen' ? 'Dosen' : 'Mahasiswa')"></span>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div>
+                        <h5 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Aktivitas Anda</h5>
+                        <template x-if="role === 'mhs'">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                                    <p class="text-[10px] font-bold text-purple-700 uppercase mb-1">Sisa Tugas</p>
+                                    <p class="text-2xl font-black text-purple-900" x-text="remainingTasksCount"></p>
+                                </div>
+                                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                    <p class="text-[10px] font-bold text-emerald-700 uppercase mb-1">Tugas Selesai</p>
+                                    <p class="text-2xl font-black text-emerald-900" x-text="completedTasksCount"></p>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="role === 'pj' || role === 'dosen'">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">Mata Kuliah Diampu</p>
+                                <p class="text-sm font-bold text-slate-800" x-text="currentUserTargetMatkul || currentUserTargetDosen"></p>
+                            </div>
+                        </template>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div>
+                        <h5 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Keamanan</h5>
+                        <form @submit.prevent="updatePassword" class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Kata Sandi Baru</label>
+                                <input type="password" x-model="newPassword" placeholder="Minimal 6 karakter" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-brand-royal focus:ring-1 focus:ring-brand-royal transition-all" required>
+                            </div>
+                            <button type="submit" :disabled="isChangingPassword || newPassword.length < 6" class="w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                <span x-show="isChangingPassword" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span x-text="isChangingPassword ? 'Menyimpan...' : 'Perbarui Kata Sandi'"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL AJUKAN PERUBAHAN -->
+        <div x-show="isModalAjukanOpen" class="fixed inset-0 z-[75] flex items-center justify-center p-4" x-cloak>
+            <div class="absolute inset-0 bg-brand-navy/40 backdrop-blur-sm" x-transition.opacity @click="isModalAjukanOpen = false"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-xl border border-slate-200 z-10 max-h-[90vh] overflow-y-auto custom-scrollbar p-6 anim-slide-up">
+                <div class="border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-base">Ajukan Perubahan Jadwal</h3>
+                    <button type="button" @click="isModalAjukanOpen = false" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-5 text-xs flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-slate-800" x-text="selectedClass?.course"></p>
+                        <p class="text-slate-400 mt-0.5" x-text="'Jadwal Reguler: ' + (selectedClass?.day || '-') + ' ' + (selectedClass?.time || '-') + ' • Ruang ' + (selectedClass?.room || '-')"></p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded bg-white border border-slate-200 font-bold text-[10px] text-slate-600" x-text="(selectedClass?.sks || 3) + ' SKS'"></span>
+                </div>
+                <form @submit.prevent="submitRequest">
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Model Penggantian</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2 p-3 border rounded-xl cursor-pointer text-xs font-bold" :class="formReq.type === 'reschedule' ? 'border-brand-royal bg-blue-50 text-brand-royal ring-1 ring-brand-royal/10' : 'border-slate-200 text-slate-600'">
+                                <input type="radio" x-model="formReq.type" value="reschedule" class="w-3.5 h-3.5"> Pindah Jadwal
+                            </label>
+                            <label class="flex items-center gap-2 p-3 border rounded-xl cursor-pointer text-xs font-bold" :class="formReq.type === 'task' ? 'border-purple-500 bg-purple-50/50 text-purple-800 ring-1 ring-purple-500/10' : 'border-slate-200 text-slate-600'">
+                                <input type="radio" x-model="formReq.type" value="task" class="w-3.5 h-3.5"> Tugas Mandiri
+                            </label>
+                        </div>
+                    </div>
+
+                    <div x-show="formReq.type === 'reschedule'" class="space-y-4">
+                        <!-- FITUR SMART FREE-SLOT RECOMMENDER -->
+                        <div class="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wide text-emerald-800">⚡ Rekomendasi Slot Kosong Kelas 2025C (Klik untuk Isi)</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="slot in recommendedFreeSlots" :key="slot.label">
+                                    <button type="button" @click="applyRecommendedSlot(slot)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-600 text-emerald-800 hover:text-white border border-emerald-300 text-[10px] font-bold transition-all shadow-sm active:scale-95">
+                                        <span x-text="slot.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50/30 p-4 rounded-xl border border-blue-100">
+                            <h4 class="text-xs font-bold text-brand-royal mb-2.5">Opsi Jadwal Pertama</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Cek Tanggal (Opsional)</label>
+                                    <input type="date" x-model="formReq.opt1.date" @change="onDatePick('opt1')" class="w-full border border-slate-200 rounded p-2 text-xs bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Pilih Hari</label>
+                                    <select x-model="formReq.opt1.day" class="w-full border border-slate-200 rounded p-2 text-xs bg-white" :required="formReq.type === 'reschedule'">
+                                        <option value="" disabled>-- Pilih --</option>
+                                        <option value="Senin">Senin</option>
+                                        <option value="Selasa">Selasa</option>
+                                        <option value="Rabu">Rabu</option>
+                                        <option value="Kamis">Kamis</option>
+                                        <option value="Jumat">Jumat</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Jam Mulai</label>
+                                    <input type="time" x-model="formReq.opt1.time" class="w-full border border-slate-200 rounded p-2 text-xs bg-white" :required="formReq.type === 'reschedule'">
+                                </div>
+                            </div>
+
+                            <div x-show="formReq.opt1.time" class="text-[10px] font-bold text-brand-royal mb-2" x-text="getFormattedEndTimePreview(formReq.opt1.time)"></div>
+
+                            <div x-show="getHolidayWarning(formReq.opt1.date)" class="mb-2 p-2.5 bg-red-50 border border-red-200 rounded-lg text-[10px] font-bold text-red-600 flex items-center gap-1.5">
+                                <span>⚠️</span>
+                                <span x-text="getHolidayWarning(formReq.opt1.date)"></span>
+                            </div>
+
+                            <div x-show="getSksOverloadWarning(formReq.opt1.day)" class="mb-2.5 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-[10px] font-bold text-amber-800 flex items-center gap-1.5">
+                                <span>⚠️</span>
+                                <span x-text="getSksOverloadWarning(formReq.opt1.day)"></span>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 cursor-pointer"><input type="radio" name="opt1_mode" x-model="formReq.opt1.isOnline" value="false" class="w-3.5 h-3.5"> Tatap Muka (Ruang Bawaan)</label>
+                                <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 cursor-pointer"><input type="radio" name="opt1_mode" x-model="formReq.opt1.isOnline" value="true" class="w-3.5 h-3.5"> Online</label>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50/20 p-4 rounded-xl border border-indigo-100">
+                            <h4 class="text-xs font-bold text-indigo-900 mb-2.5">Opsi Jadwal Kedua (Opsional)</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Cek Tanggal (Opsional)</label>
+                                    <input type="date" x-model="formReq.opt2.date" @change="onDatePick('opt2')" class="w-full border border-slate-200 rounded p-2 text-xs bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Pilih Hari</label>
+                                    <select x-model="formReq.opt2.day" class="w-full border border-slate-200 rounded p-2 text-xs bg-white">
+                                        <option value="">-- 1 Opsi Saja --</option>
+                                        <option value="Senin">Senin</option>
+                                        <option value="Selasa">Selasa</option>
+                                        <option value="Rabu">Rabu</option>
+                                        <option value="Kamis">Kamis</option>
+                                        <option value="Jumat">Jumat</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Jam Mulai</label>
+                                    <input type="time" x-model="formReq.opt2.time" class="w-full border border-slate-200 rounded p-2 text-xs bg-white">
+                                </div>
+                            </div>
+
+                            <div x-show="formReq.opt2.time" class="text-[10px] font-bold text-indigo-700 mb-2" x-text="getFormattedEndTimePreview(formReq.opt2.time)"></div>
+
+                            <div x-show="getHolidayWarning(formReq.opt2.date)" class="mb-2 p-2.5 bg-red-50 border border-red-200 rounded-lg text-[10px] font-bold text-red-600 flex items-center gap-1.5">
+                                <span>⚠️</span>
+                                <span x-text="getHolidayWarning(formReq.opt2.date)"></span>
+                            </div>
+
+                            <div x-show="getSksOverloadWarning(formReq.opt2.day)" class="mb-2.5 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-[10px] font-bold text-amber-800 flex items-center gap-1.5">
+                                <span>⚠️</span>
+                                <span x-text="getSksOverloadWarning(formReq.opt2.day)"></span>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 cursor-pointer"><input type="radio" name="opt2_mode" x-model="formReq.opt2.isOnline" value="false" class="w-3.5 h-3.5"> Tatap Muka (Ruang Bawaan)</label>
+                                <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 cursor-pointer"><input type="radio" name="opt2_mode" x-model="formReq.opt2.isOnline" value="true" class="w-3.5 h-3.5"> Online</label>
+                            </div>
+                        </div>
+
+                        <div x-show="formReq.opt1.isOnline === 'true' || formReq.opt2.isOnline === 'true' || formReq.opt1.isOnline === true || formReq.opt2.isOnline === true">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <label class="flex items-center gap-2 text-[10px] font-bold text-slate-600 cursor-pointer select-none">
+                                    <input type="checkbox" x-model="formReq.askPjForGmeet" class="w-4 h-4"> Minta PJ membuatkan link Google Meet
+                                </label>
+                                <div x-show="!formReq.askPjForGmeet" class="mt-3">
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Atau cantumkan tautan Google Meet Anda:</label>
+                                    <input type="url" x-model="formReq.gmeetLink" placeholder="https://meet.google.com/..." class="w-full border border-slate-200 rounded p-2 text-xs bg-white outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="formReq.type === 'task'">
+                        <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-200">
+                            <label class="block text-xs font-bold text-purple-900 mb-1.5">Catatan Instruksi Tugas</label>
+                            <textarea x-model="formReq.taskNote" :required="formReq.type === 'task'" class="w-full border border-purple-200 rounded-lg p-3 text-xs outline-none bg-white resize-none" rows="3" placeholder="Contoh: Silakan rampungkan pengerjaan modul pekan lalu dan diupload ke forum kuliah ya..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-4 mt-4 border-t border-slate-100">
+                        <button type="button" @click="isModalAjukanOpen = false" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-royal hover:bg-brand-royalHover text-white rounded-lg text-xs font-bold shadow-sm active:scale-95 transition-all">Ajukan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL PJ: TOLAK -->
+        <div x-show="isModalRejectOpen" class="fixed inset-0 z-[75] flex items-center justify-center p-4" x-cloak>
+            <div class="absolute inset-0 bg-brand-navy/40 backdrop-blur-sm" x-transition.opacity @click="isModalRejectOpen = false"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-sm border border-slate-200 z-10 overflow-hidden p-6 anim-slide-up">
+                <div class="border-b border-red-100 pb-3 mb-4 flex justify-between items-center">
+                    <h3 class="font-bold text-red-800 text-xs">Penolakan Usulan Perubahan Jadwal</h3>
+                    <button type="button" @click="isModalRejectOpen = false" class="text-red-400 hover:text-red-700">✕</button>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-600 mb-4 font-medium leading-relaxed">Berikan alasan yang jelas atas penolakan ini. Status mata kuliah akan <strong class="text-red-600">diubah otomatis menjadi tugas mandiri</strong>.</p>
+                    <textarea x-model="rejectReason" class="w-full border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-red-500 mb-4 resize-none bg-slate-50" rows="3" placeholder="Contoh: Jadwal yang diajukan tidak dapat diakomodir oleh para mahasiswa karena bentrok kelas lain..." required></textarea>
+                    <div class="flex justify-end gap-2.5">
+                        <button type="button" @click="isModalRejectOpen = false" class="px-3.5 py-1.5 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-500 hover:bg-slate-50 transition-colors">Batal</button>
+                        <button type="button" @click="confirmReject" class="px-3.5 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-[11px] font-bold shadow-sm active:scale-95 transition-all">Konfirmasi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL KONFIRMASI LOGOUT -->
+        <div x-show="isLogoutModalOpen" class="fixed inset-0 z-[75] flex items-center justify-center p-4" x-cloak>
+            <div class="absolute inset-0 bg-brand-navy/50 backdrop-blur-sm" x-transition.opacity @click="isLogoutModalOpen = false"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-sm border border-slate-200 z-10 p-6 anim-slide-up">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-lg">Konfirmasi Keluar</h3>
+                </div>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">Apakah Anda yakin ingin keluar dari sistem PantauDos? Anda perlu login kembali untuk mengakses data jadwal dan voting kelas.</p>
+                <div class="flex justify-end gap-2.5">
+                    <button type="button" @click="isLogoutModalOpen = false" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">Batal</button>
+                    <button type="button" @click="confirmLogout()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm active:scale-95 transition-all">Ya, Logout</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
